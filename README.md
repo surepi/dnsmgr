@@ -79,7 +79,10 @@ location / {
 ```
 docker run --name dnsmgr -dit -p 8081:80 -v /var/dnsmgr:/app/www netcccyun/dnsmgr
 ```
-
+ARM64部署
+```
+docker run --name dnsmgr -dit -p 8081:80 -v /var/dnsmgr:/app/www surepi942/dnsmgr
+```
 访问并安装好后如果容灾切换未自动启动，重启容器即可：
 
 ```
