@@ -95,7 +95,7 @@ docker restart dnsmgr
 docker pull swr.cn-east-3.myhuaweicloud.com/netcccyun/dnsmgr:latest
 ```
 
-### docker-compose 部署
+### docker-compose 已部署
 
 ```
 version: '3'
@@ -127,6 +127,42 @@ services:
       - MYSQL_ROOT_PASSWORD=123456
       - TZ=Asia/Shanghai
     image: mysql:5.7
+    networks:
+      - dnsmgr-network
+
+networks:
+  dnsmgr-network:
+    driver: bridge
+```
+ARM架构
+```
+version: '3'
+services:
+  dnsmgr-web:
+    container_name: dnsmgr
+    stdin_open: true
+    tty: true
+    ports:
+      - 8080:80
+    volumes:
+      - ./web:/app/www  # 改为当前目录下的web子目录
+    image: surepi942/dnsmgr
+    depends_on:
+      - dnsmgr-mysql
+    networks:
+      - dnsmgr-network
+
+  dnsmgr-mysql:
+    container_name: dnsmgr-mysql
+    restart: always
+    volumes:
+      - ./mysql/conf/my.cnf:/etc/mysql/my.cnf
+      - ./mysql/logs:/logs
+      - ./mysql/data:/var/lib/mysql  # 保持当前目录结构
+    environment:
+      - MYSQL_ROOT_PASSWORD=12345678
+      - TZ=Asia/Shanghai
+    image: mysql:8
     networks:
       - dnsmgr-network
 
