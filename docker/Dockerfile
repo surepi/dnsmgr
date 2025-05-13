@@ -8,6 +8,7 @@ RUN apk add --no-cache \
   bash \
   curl \
   nginx \
+  git \
   php82 \
   php82-ctype \
   php82-curl \
@@ -49,7 +50,22 @@ COPY config/php.ini ${PHP_INI_DIR}/conf.d/custom.ini
 COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Add application
-RUN mkdir -p /usr/src && wget https://github.com/netcccyun/dnsmgr/archive/refs/heads/main.zip -O /usr/src/www.zip && unzip /usr/src/www.zip -d /usr/src/ && mv /usr/src/dnsmgr-main /usr/src/www && rm -f /usr/src/www.zip
+# 创建自动更新脚本
+RUN echo $'#!/bin/sh\n\
+mkdir -p /usr/src\n\
+wget https://github.com/netcccyun/dnsmgr/archive/refs/heads/main.zip -O /usr/src/www.zip\n\
+unzip -o /usr/src/www.zip -d /usr/src/\n\
+rm -rf /usr/src/www\n\
+mv /usr/src/dnsmgr-main /usr/src/www\n\
+rm -f /usr/src/www.zip\n\
+chown -R www:www /usr/src/www' > /usr/src/auto-update.sh && \
+chmod +x /usr/src/auto-update.sh
+
+# 添加 root 用户的定时任务 (每天凌晨3点执行)
+RUN echo "0 3 * * * /usr/src/auto-update.sh" | crontab -
+
+# 如果要使用 www 用户执行(需要确保有权限):
+# RUN echo "0 3 * * * /usr/src/auto-update.sh" | crontab -u www -
 
 # Install composer
 RUN wget https://mirrors.aliyun.com/composer/composer.phar -O /usr/local/bin/composer && chmod +x /usr/local/bin/composer
