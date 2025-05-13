@@ -37,7 +37,7 @@ jobs:
       - name: Build and Push Multi-Arch Image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./docker
           file: ./docker/Dockerfile
           platforms: linux/amd64, linux/arm64  # 目标平台
           # 标签包含: commit hash, latest和日期(YYYYMMDD格式)
