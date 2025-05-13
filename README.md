@@ -139,7 +139,7 @@ ARM架构
 version: '3'
 services:
   dnsmgr-web:
-    container_name: dnsmgr
+    container_name: dnsmgr-web
     stdin_open: true
     tty: true
     ports:
@@ -160,7 +160,7 @@ services:
       - ./mysql/logs:/logs
       - ./mysql/data:/var/lib/mysql  # 保持当前目录结构
     environment:
-      - MYSQL_ROOT_PASSWORD=12345678
+      - MYSQL_ROOT_PASSWORD=123456
       - TZ=Asia/Shanghai
     image: mysql:8
     networks:
