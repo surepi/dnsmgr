@@ -95,7 +95,7 @@ docker restart dnsmgr
 docker pull swr.cn-east-3.myhuaweicloud.com/netcccyun/dnsmgr:latest
 ```
 
-### docker-compose 已部署
+### docker-compose 部署
 
 ```
 version: '3'
