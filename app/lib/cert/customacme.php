@@ -15,7 +15,7 @@ class customacme implements CertInterface
     public function __construct($config, $ext = null)
     {
         $this->config = $config;
-        $this->ac = new ACMECert($config['directory'], $config['proxy'] == 1);
+        $this->ac = new ACMECert($config['directory'], (int)$config['proxy']);
         if ($ext) {
             $this->ext = $ext;
             $this->ac->loadAccountKey($ext['key']);
@@ -64,7 +64,7 @@ class customacme implements CertInterface
         if (!empty($order['challenges'])) {
             foreach ($order['challenges'] as $opts) {
                 $mainDomain = getMainDomain($opts['domain']);
-                $name = str_replace('.' . $mainDomain, '', $opts['key']);
+                $name = substr($opts['key'], 0, -(strlen($mainDomain) + 1));
                 $dnsList[$mainDomain][] = ['name' => $name, 'type' => 'TXT', 'value' => $opts['value']];
             }
         }

@@ -229,6 +229,45 @@ class DeployHelper
             ],
             'taskinputs' => [],
         ],
+        'btwaf' => [
+            'name' => '堡塔云WAF',
+            'class' => 1,
+            'icon' => 'bt.ico',
+            'note' => null,
+            'tasknote' => '',
+            'inputs' => [
+                'url' => [
+                    'name' => '面板地址',
+                    'type' => 'input',
+                    'placeholder' => '堡塔云WAF面板地址',
+                    'note' => '填写规则如：http://192.168.1.100:8379 ，不要带其他后缀',
+                    'required' => true,
+                ],
+                'key' => [
+                    'name' => '接口密钥',
+                    'type' => 'input',
+                    'placeholder' => '面板设置->API接口',
+                    'required' => true,
+                ],
+                'proxy' => [
+                    'name' => '使用代理服务器',
+                    'type' => 'radio',
+                    'options' => [
+                        '0' => '否',
+                        '1' => '是',
+                    ],
+                    'value' => '0'
+                ],
+            ],
+            'taskinputs' => [
+                'sites' => [
+                    'name' => '网站名称列表',
+                    'type' => 'textarea',
+                    'placeholder' => '填写要部署证书的网站名称，每行一个',
+                    'required' => true,
+                ],
+            ],
+        ],
         'cdnfly' => [
             'name' => 'Cdnfly',
             'class' => 1,
@@ -397,6 +436,16 @@ class DeployHelper
                     'placeholder' => '1Panel面板设置->API接口',
                     'required' => true,
                 ],
+                'version' => [
+                    'name' => '1Panel版本',
+                    'type' => 'radio',
+                    'options' => [
+                        'v1' => '1.x',
+                        'v2' => '2.x',
+                    ],
+                    'value' => 'v1',
+                    'required' => true,
+                ],
                 'proxy' => [
                     'name' => '使用代理服务器',
                     'type' => 'radio',
@@ -461,6 +510,64 @@ class DeployHelper
                     'type' => 'textarea',
                     'placeholder' => '填写要部署证书的网站名称，每行一个',
                     'note' => '网站名称，即为网站创建时绑定的第一个域名',
+                    'show' => 'type==0',
+                    'required' => true,
+                ],
+            ],
+        ],
+        'ratpanel' => [
+            'name' => '耗子面板',
+            'class' => 1,
+            'icon' => 'ratpanel.ico',
+            'note' => '支持耗子面板 v2.5+ 版本使用',
+            'inputs' => [
+                'url' => [
+                    'name' => '面板地址',
+                    'type' => 'input',
+                    'placeholder' => '耗子面板地址',
+                    'note' => '填写规则如：https://192.168.1.100:8888/xxxxxx ，带访问入口但不要带其他后缀',
+                    'required' => true,
+                ],
+                'id' => [
+                    'name' => '访问令牌ID',
+                    'type' => 'input',
+                    'placeholder' => '1',
+                    'note' => '耗子面板设置->用户->访问令牌',
+                    'required' => true,
+                ],
+                'token' => [
+                    'name' => '访问令牌',
+                    'type' => 'input',
+                    'note' => '耗子面板设置->用户->访问令牌',
+                    'placeholder' => '32位字符串',
+                    'required' => true,
+                ],
+                'proxy' => [
+                    'name' => '使用代理服务器',
+                    'type' => 'radio',
+                    'options' => [
+                        '0' => '否',
+                        '1' => '是',
+                    ],
+                    'value' => '0'
+                ],
+            ],
+            'taskinputs' => [
+                'type' => [
+                    'name' => '部署类型',
+                    'type' => 'radio',
+                    'options' => [
+                        '0' => '耗子面板网站的证书',
+                        '1' => '耗子面板本身的证书',
+                    ],
+                    'value' => '0',
+                    'required' => true,
+                ],
+                'sites' => [
+                    'name' => '网站名称列表',
+                    'type' => 'textarea',
+                    'placeholder' => '填写要部署证书的网站名称，每行一个',
+                    'note' => '填写创建网站时设置的网站唯一名称',
                     'show' => 'type==0',
                     'required' => true,
                 ],
