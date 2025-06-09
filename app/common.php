@@ -326,6 +326,8 @@ function check_proxy($url, $proxy_server, $proxy_port, $type, $proxy_user, $prox
         $proxy_type = CURLPROXY_SOCKS4;
     } elseif ($type == 'sock5') {
         $proxy_type = CURLPROXY_SOCKS5;
+    } elseif ($type == 'sock5h') {
+        $proxy_type = CURLPROXY_SOCKS5_HOSTNAME;
     } else {
         $proxy_type = CURLPROXY_HTTP;
     }
@@ -462,6 +464,8 @@ function curl_set_proxy(&$ch)
         $proxy_type = CURLPROXY_SOCKS4;
     } elseif ($proxy_type == 'sock5') {
         $proxy_type = CURLPROXY_SOCKS5;
+    } elseif ($proxy_type == 'sock5h') {
+        $proxy_type = CURLPROXY_SOCKS5_HOSTNAME;
     } else {
         $proxy_type = CURLPROXY_HTTP;
     }
@@ -496,7 +500,7 @@ function getDomainDate($domain)
         $info = $whois->loadDomainInfo($domain);
         if ($info) {
             if ($info->expirationDate > 0) {
-                return [date('Y-m-d H:i:s', $info->creationDate), date('Y-m-d H:i:s', $info->expirationDate)];
+                return [$info->creationDate > 0 ? date('Y-m-d H:i:s', $info->creationDate) : null, date('Y-m-d H:i:s', $info->expirationDate)];
             } else {
                 throw new Exception('域名到期时间未知');
             }

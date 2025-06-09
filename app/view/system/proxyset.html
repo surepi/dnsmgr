@@ -30,6 +30,7 @@
 	  <option value="https">HTTPS</option>
 	  <option value="sock4">SOCK4</option>
 	  <option value="sock5">SOCK5</option>
+	  <option value="sock5h">SOCK5H</option>
 	  </select></div>
 	</div><br/>
 	<div class="form-group">
@@ -56,7 +57,7 @@ function saveSetting(obj){
 	var ii = layer.load(2, {shade:[0.1,'#fff']});
 	$.ajax({
 		type : 'POST',
-		url : '',
+		url : '/system/set',
 		data : $(obj).serialize(),
 		dataType : 'json',
 		success : function(data) {

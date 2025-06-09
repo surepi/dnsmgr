@@ -43,8 +43,17 @@ class Cert extends BaseController
 
         $list = [];
         foreach ($rows as $row) {
-            $row['typename'] = $deploy == 1 ? DeployHelper::$deploy_config[$row['type']]['name'] : CertHelper::$cert_config[$row['type']]['name'];
-            $row['icon'] = $deploy == 1 ? DeployHelper::$deploy_config[$row['type']]['icon'] : CertHelper::$cert_config[$row['type']]['icon'];
+            if ($deploy == 1) {
+                if (!empty($row['type']) && isset(DeployHelper::$deploy_config[$row['type']])) {
+                    $row['typename'] = DeployHelper::$deploy_config[$row['type']]['name'];
+                    $row['icon'] = DeployHelper::$deploy_config[$row['type']]['icon'];
+                }
+            } else {
+                if (!empty($row['type']) && isset(CertHelper::$cert_config[$row['type']])) {
+                    $row['typename'] = CertHelper::$cert_config[$row['type']]['name'];
+                    $row['icon'] = CertHelper::$cert_config[$row['type']]['icon'];
+                }
+            }
             $list[] = $row;
         }
 
@@ -66,7 +75,7 @@ class Cert extends BaseController
             if ($type == 'local') $name = '复制到本机';
             if (empty($name) || empty($config)) return json(['code' => -1, 'msg' => '必填参数不能为空']);
             if (Db::name('cert_account')->where('type', $type)->where('config', $config)->find()) {
-                return json(['code' => -1, 'msg' => $title.'已存在']);
+                return json(['code' => -1, 'msg' => $title . '已存在']);
             }
             Db::startTrans();
             $id = Db::name('cert_account')->insertGetId([
@@ -80,15 +89,15 @@ class Cert extends BaseController
             try {
                 $this->checkAccount($id, $type, $deploy);
                 Db::commit();
-                return json(['code' => 0, 'msg' => '添加'.$title.'成功！']);
-            } catch(Exception $e) {
+                return json(['code' => 0, 'msg' => '添加' . $title . '成功！']);
+            } catch (Exception $e) {
                 Db::rollback();
                 return json(['code' => -1, 'msg' => $e->getMessage()]);
             }
         } elseif ($action == 'edit') {
             $id = input('post.id/d');
             $row = Db::name('cert_account')->where('id', $id)->find();
-            if (!$row) return json(['code' => -1, 'msg' => $title.'不存在']);
+            if (!$row) return json(['code' => -1, 'msg' => $title . '不存在']);
             $type = input('post.type');
             $name = input('post.name', null, 'trim');
             $config = input('post.config', null, 'trim');
@@ -96,7 +105,7 @@ class Cert extends BaseController
             if ($type == 'local') $name = '复制到本机';
             if (empty($name) || empty($config)) return json(['code' => -1, 'msg' => '必填参数不能为空']);
             if (Db::name('cert_account')->where('type', $type)->where('config', $config)->where('id', '<>', $id)->find()) {
-                return json(['code' => -1, 'msg' => $title.'已存在']);
+                return json(['code' => -1, 'msg' => $title . '已存在']);
             }
             Db::startTrans();
             Db::name('cert_account')->where('id', $id)->update([
@@ -108,19 +117,19 @@ class Cert extends BaseController
             try {
                 $this->checkAccount($id, $type, $deploy);
                 Db::commit();
-                return json(['code' => 0, 'msg' => '修改'.$title.'成功！']);
-            } catch(Exception $e) {
+                return json(['code' => 0, 'msg' => '修改' . $title . '成功！']);
+            } catch (Exception $e) {
                 Db::rollback();
                 return json(['code' => -1, 'msg' => $e->getMessage()]);
             }
         } elseif ($action == 'del') {
             $id = input('post.id/d');
-            if($deploy == 0){
+            if ($deploy == 0) {
                 $dcount = DB::name('cert_order')->where('aid', $id)->count();
-                if ($dcount > 0) return json(['code' => -1, 'msg' => '该'.$title.'下存在证书订单，无法删除']);
-            }else{
+                if ($dcount > 0) return json(['code' => -1, 'msg' => '该' . $title . '下存在证书订单，无法删除']);
+            } else {
                 $dcount = DB::name('cert_deploy')->where('aid', $id)->count();
-                if ($dcount > 0) return json(['code' => -1, 'msg' => '该'.$title.'下存在自动部署任务，无法删除']);
+                if ($dcount > 0) return json(['code' => -1, 'msg' => '该' . $title . '下存在自动部署任务，无法删除']);
             }
             Db::name('cert_account')->where('id', $id)->delete();
             return json(['code' => 0]);
@@ -139,7 +148,7 @@ class Cert extends BaseController
         if ($action == 'edit') {
             $id = input('get.id/d');
             $account = Db::name('cert_account')->where('id', $id)->find();
-            if (empty($account)) return $this->alert('error', $title.'不存在');
+            if (empty($account)) return $this->alert('error', $title . '不存在');
         }
 
         $typeList = $deploy == 1 ? DeployHelper::getList() : CertHelper::getList();
@@ -156,32 +165,32 @@ class Cert extends BaseController
 
     private function checkAccount($id, $type, $deploy)
     {
-        if($deploy == 0){
+        if ($deploy == 0) {
             $mod = CertHelper::getModel($id);
-            if($mod){
-                try{
+            if ($mod) {
+                try {
                     $ext = $mod->register();
-                    if(is_array($ext)){
-                        Db::name('cert_account')->where('id', $id)->update(['ext'=>json_encode($ext)]);
+                    if (is_array($ext)) {
+                        Db::name('cert_account')->where('id', $id)->update(['ext' => json_encode($ext)]);
                     }
                     return true;
-                }catch(Exception $e){
+                } catch (Exception $e) {
                     throw new Exception('验证SSL证书账户失败，' . $e->getMessage());
                 }
-            }else{
-                throw new Exception('SSL证书申请模块'.$type.'不存在');
+            } else {
+                throw new Exception('SSL证书申请模块' . $type . '不存在');
             }
-        }else{
+        } else {
             $mod = DeployHelper::getModel($id);
-            if($mod){
-                try{
+            if ($mod) {
+                try {
                     $mod->check();
                     return true;
-                }catch(Exception $e){
+                } catch (Exception $e) {
                     throw new Exception('验证自动部署账户失败，' . $e->getMessage());
                 }
-            }else{
-                throw new Exception('SSL证书申请模块'.$type.'不存在');
+            } else {
+                throw new Exception('SSL证书申请模块' . $type . '不存在');
             }
         }
     }
@@ -190,7 +199,7 @@ class Cert extends BaseController
     {
         if (!checkPermission(2)) return $this->alert('error', '无权限');
         $types = [];
-        foreach(CertHelper::$cert_config as $key=>$value){
+        foreach (CertHelper::$cert_config as $key => $value) {
             $types[$key] = $value['name'];
         }
         View::assign('types', $types);
@@ -202,17 +211,21 @@ class Cert extends BaseController
         if (!checkPermission(2)) return $this->alert('error', '无权限');
         $domain = $this->request->post('domain', null, 'trim');
         $id = input('post.id');
+        $aid = input('post.aid', null, 'trim');
         $type = input('post.type', null, 'trim');
         $status = input('post.status', null, 'trim');
         $offset = input('post.offset/d');
         $limit = input('post.limit/d');
 
-        $select = Db::name('cert_order')->alias('A')->join('cert_account B', 'A.aid = B.id');
+        $select = Db::name('cert_order')->alias('A')->leftJoin('cert_account B', 'A.aid = B.id');
         if (!empty($id)) {
             $select->where('A.id', $id);
-        }elseif (!empty($domain)) {
+        } elseif (!empty($domain)) {
             $oids = Db::name('cert_domain')->where('domain', 'like', '%' . $domain . '%')->column('oid');
             $select->whereIn('A.id', $oids);
+        }
+        if (!empty($aid)) {
+            $select->where('A.aid', $aid);
         }
         if (!empty($type)) {
             $select->where('B.type', $type);
@@ -233,11 +246,15 @@ class Cert extends BaseController
 
         $list = [];
         foreach ($rows as $row) {
-            $row['typename'] = CertHelper::$cert_config[$row['type']]['name'];
-            $row['icon'] = CertHelper::$cert_config[$row['type']]['icon'];
-            $row['domains'] = Db::name('cert_domain')->where('oid', $row['id'])->order('sort','ASC')->column('domain');
+            if (!empty($row['type']) && isset(CertHelper::$cert_config[$row['type']])) {
+                $row['typename'] = CertHelper::$cert_config[$row['type']]['name'];
+                $row['icon'] = CertHelper::$cert_config[$row['type']]['icon'];
+            } else {
+                $row['typename'] = null;
+            }
+            $row['domains'] = Db::name('cert_domain')->where('oid', $row['id'])->order('sort', 'ASC')->column('domain');
             $row['end_day'] = $row['expiretime'] ? ceil((strtotime($row['expiretime']) - time()) / 86400) : null;
-            if($row['error']) $row['error'] = htmlspecialchars(str_replace("'", "\\'", $row['error']));
+            if ($row['error']) $row['error'] = htmlspecialchars(str_replace("'", "\\'", $row['error']));
             $list[] = $row;
         }
 
@@ -252,7 +269,7 @@ class Cert extends BaseController
         if (!$row) return json(['code' => -1, 'msg' => '证书订单不存在']);
         $pfx = CertHelper::getPfx($row['fullchain'], $row['privatekey']);
         $row['pfx'] = base64_encode($pfx);
-        return json(['code' => 0, 'data' => ['id' => $row['id'], 'crt' => $row['fullchain'], 'key' => $row['privatekey'], 'pfx' => $row['pfx'], 'issuetime' => $row['issuetime'], 'expiretime' => $row['expiretime'], 'domains' => Db::name('cert_domain')->where('oid', $row['id'])->order('sort','ASC')->column('domain')]]);
+        return json(['code' => 0, 'data' => ['id' => $row['id'], 'crt' => $row['fullchain'], 'key' => $row['privatekey'], 'pfx' => $row['pfx'], 'issuetime' => $row['issuetime'], 'expiretime' => $row['expiretime'], 'domains' => Db::name('cert_domain')->where('oid', $row['id'])->order('sort', 'ASC')->column('domain')]]);
     }
 
     public function order_op()
@@ -268,32 +285,66 @@ class Cert extends BaseController
             $row['pfx'] = base64_encode($pfx);
             return json(['code' => 0, 'data' => $row]);
         } elseif ($action == 'add') {
-            $domains = input('post.domains', [], 'trim');
-            $order = [
-                'aid' => input('post.aid/d'),
-                'keytype' => input('post.keytype'),
-                'keysize' => input('post.keysize'),
-                'addtime' => date('Y-m-d H:i:s'),
-                'issuer' => '',
-                'status' => 0,
-                'isauto' => 1,
-            ];
-            $domains = array_map('trim', $domains);
-            $domains = array_filter($domains, function ($v) {
-                return !empty($v);
-            });
-            $domains = array_unique($domains);
-            if (empty($domains)) return json(['code' => -1, 'msg' => '绑定域名不能为空']);
-            if (empty($order['aid']) || empty($order['keytype']) || empty($order['keysize'])) return json(['code' => -1, 'msg' => '必填参数不能为空']);
+            $aid = input('post.aid/d');
 
-            $res = $this->check_order($order, $domains);
-            if (is_array($res)) return json($res);
+            if ($aid == -1) {
+                $fullchain = input('post.fullchain', null, 'trim');
+                $privatekey = input('post.privatekey', null, 'trim');
+                $certInfo = $this->parse_cert_key($fullchain, $privatekey);
+                if ($certInfo['code'] == -1) return json($certInfo);
+                $domains = $certInfo['domains'];
+
+                $order_ids = Db::name('cert_order')->where('issuetime', $certInfo['issuetime'])->column('id');
+                if (!empty($order_ids)) {
+                    foreach ($order_ids as $order_id) {
+                        $domains2 = Db::name('cert_domain')->where('oid', $order_id)->column('domain');
+                        if (arrays_are_equal($domains2, $domains)) {
+                            return json(['code' => -1, 'msg' => '该证书已存在，无需重复添加']);
+                        }
+                    }
+                }
+
+                $order = [
+                    'aid' => 0,
+                    'keytype' => $certInfo['keytype'],
+                    'keysize' => $certInfo['keysize'],
+                    'addtime' => date('Y-m-d H:i:s'),
+                    'updatetime' => date('Y-m-d H:i:s'),
+                    'issuetime' => $certInfo['issuetime'],
+                    'expiretime' => $certInfo['expiretime'],
+                    'issuer' => $certInfo['issuer'],
+                    'status' => 3,
+                    'isauto' => 1,
+                    'fullchain' => $fullchain,
+                    'privatekey' => $privatekey,
+                ];
+            } else {
+                $order = [
+                    'aid' => $aid,
+                    'keytype' => input('post.keytype'),
+                    'keysize' => input('post.keysize'),
+                    'addtime' => date('Y-m-d H:i:s'),
+                    'issuer' => '',
+                    'status' => 0,
+                    'isauto' => 1,
+                ];
+                $domains = input('post.domains', [], 'trim');
+                $domains = array_map('trim', $domains);
+                $domains = array_filter($domains, function ($v) {
+                    return !empty($v);
+                });
+                $domains = array_unique($domains);
+                if (empty($domains)) return json(['code' => -1, 'msg' => '绑定域名不能为空']);
+                $res = $this->check_order($order, $domains);
+                if (is_array($res)) return json($res);
+            }
+            if (empty($order['keytype']) || empty($order['keysize'])) return json(['code' => -1, 'msg' => '必填参数不能为空']);
 
             Db::startTrans();
             $id = Db::name('cert_order')->insertGetId($order);
             $domainList = [];
-            $i=1;
-            foreach($domains as $domain){
+            $i = 1;
+            foreach ($domains as $domain) {
                 $domainList[] = [
                     'oid' => $id,
                     'domain' => convertDomainToAscii($domain),
@@ -307,31 +358,53 @@ class Cert extends BaseController
             $id = input('post.id/d');
             $row = Db::name('cert_order')->where('id', $id)->find();
             if (!$row) return json(['code' => -1, 'msg' => '证书订单不存在']);
-            
-            $domains = input('post.domains', [], 'trim');
-            $order = [
-                'aid' => input('post.aid/d'),
-                'keytype' => input('post.keytype'),
-                'keysize' => input('post.keysize'),
-                'updatetime' => date('Y-m-d H:i:s'),
-            ];
-            $domains = array_map('trim', $domains);
-            $domains = array_filter($domains, function ($v) {
-                return !empty($v);
-            });
-            $domains = array_unique($domains);
-            if (empty($domains)) return json(['code' => -1, 'msg' => '绑定域名不能为空']);
-            if (empty($order['aid']) || empty($order['keytype']) || empty($order['keysize'])) return json(['code' => -1, 'msg' => '必填参数不能为空']);
 
-            $res = $this->check_order($order, $domains);
-            if (is_array($res)) return json($res);
+            $aid = input('post.aid/d');
+            if ($aid == -1) {
+                $fullchain = input('post.fullchain', null, 'trim');
+                $privatekey = input('post.privatekey', null, 'trim');
+                $certInfo = $this->parse_cert_key($fullchain, $privatekey);
+                if ($certInfo['code'] == -1) return json($certInfo);
+                $domains = $certInfo['domains'];
+
+                $order = [
+                    'aid' => 0,
+                    'keytype' => $certInfo['keytype'],
+                    'keysize' => $certInfo['keysize'],
+                    'updatetime' => date('Y-m-d H:i:s'),
+                    'issuetime' => $certInfo['issuetime'],
+                    'expiretime' => $certInfo['expiretime'],
+                    'issuer' => $certInfo['issuer'],
+                    'status' => 3,
+                    'issend' => 0,
+                    'fullchain' => $fullchain,
+                    'privatekey' => $privatekey,
+                ];
+            } else {
+                $domains = input('post.domains', [], 'trim');
+                $order = [
+                    'aid' => $aid,
+                    'keytype' => input('post.keytype'),
+                    'keysize' => input('post.keysize'),
+                    'updatetime' => date('Y-m-d H:i:s'),
+                ];
+                $domains = array_map('trim', $domains);
+                $domains = array_filter($domains, function ($v) {
+                    return !empty($v);
+                });
+                $domains = array_unique($domains);
+                if (empty($domains)) return json(['code' => -1, 'msg' => '绑定域名不能为空']);
+                $res = $this->check_order($order, $domains);
+                if (is_array($res)) return json($res);
+            }
+            if (empty($order['keytype']) || empty($order['keysize'])) return json(['code' => -1, 'msg' => '必填参数不能为空']);
 
             Db::startTrans();
             Db::name('cert_order')->where('id', $id)->update($order);
             Db::name('cert_domain')->where('oid', $id)->delete();
             $domainList = [];
-            $i=1;
-            foreach($domains as $domain){
+            $i = 1;
+            foreach ($domains as $domain) {
                 $domainList[] = [
                     'oid' => $id,
                     'domain' => convertDomainToAscii($domain),
@@ -341,79 +414,13 @@ class Cert extends BaseController
             Db::name('cert_domain')->insertAll($domainList);
             Db::commit();
             return json(['code' => 0, 'msg' => '修改证书订单成功！']);
-        } elseif ($action == 'import') {
-            $fullchain = input('post.fullchain', null, 'trim');
-            $privatekey = input('post.privatekey', null, 'trim');
-            if (!openssl_x509_read($fullchain)) return json(['code' => -1, 'msg' => '证书内容填写错误']);
-            if (!openssl_get_privatekey($privatekey)) return json(['code' => -1, 'msg' => '私钥内容填写错误']);
-            if (!openssl_x509_check_private_key($fullchain, $privatekey)) return json(['code' => -1, 'msg' => 'SSL证书与私钥不匹配']);
-            $certInfo = openssl_x509_parse($fullchain, true);
-            if (!$certInfo || !isset($certInfo['extensions']['subjectAltName'])) return json(['code' => -1, 'msg' => '证书内容解析失败']);
-
-            $domains = [];
-            $subjectAltName = explode(',', $certInfo['extensions']['subjectAltName']);
-            foreach ($subjectAltName as $domain) {
-                $domain = trim($domain);
-                if (strpos($domain, 'DNS:') === 0) $domain = substr($domain, 4);
-                if (!empty($domain)) {
-                    $domains[] = $domain;
-                }
-            }
-            $domains = array_unique($domains);
-            if (empty($domains)) return json(['code' => -1, 'msg' => '证书绑定域名不能为空']);
-            $issuetime = date('Y-m-d H:i:s', $certInfo['validFrom_time_t']);
-            $expiretime = date('Y-m-d H:i:s', $certInfo['validTo_time_t']);
-            $issuer = $certInfo['issuer']['CN'];
-
-            $order_ids = Db::name('cert_order')->where('issuetime', $issuetime)->column('id');
-            if (!empty($order_ids)) {
-                foreach ($order_ids as $order_id) {
-                    $domains2 = Db::name('cert_domain')->where('oid', $order_id)->column('domain');
-                    if (arrays_are_equal($domains2, $domains)) {
-                        return json(['code' => -1, 'msg' => '该证书已存在，无需重复添加']);
-                    }
-                }
-            }
-
-            $order = [
-                'aid' => input('post.aid/d'),
-                'keytype' => input('post.keytype'),
-                'keysize' => input('post.keysize'),
-                'addtime' => date('Y-m-d H:i:s'),
-                'updatetime' => date('Y-m-d H:i:s'),
-                'issuetime' => $issuetime,
-                'expiretime' => $expiretime,
-                'issuer' => $issuer,
-                'status' => 3,
-                'fullchain' => $fullchain,
-                'privatekey' => $privatekey,
-            ];
-            if (empty($order['aid']) || empty($order['keytype']) || empty($order['keysize'])) return json(['code' => -1, 'msg' => '必填参数不能为空']);
-
-            $res = $this->check_order($order, $domains);
-            if (is_array($res)) return json($res);
-
-            Db::startTrans();
-            $id = Db::name('cert_order')->insertGetId($order);
-            $domainList = [];
-            $i = 1;
-            foreach ($domains as $domain) {
-                $domainList[] = [
-                    'oid' => $id,
-                    'domain' => $domain,
-                    'sort' => $i++,
-                ];
-            }
-            Db::name('cert_domain')->insertAll($domainList);
-            Db::commit();
-            return json(['code' => 0, 'msg' => '导入证书成功！']);
         } elseif ($action == 'del') {
             $id = input('post.id/d');
             $dcount = DB::name('cert_deploy')->where('oid', $id)->count();
             if ($dcount > 0) return json(['code' => -1, 'msg' => '该证书关联了自动部署任务，无法删除']);
-            try{
+            try {
                 (new CertOrderService($id))->cancel();
-            }catch(Exception $e){
+            } catch (Exception $e) {
             }
             Db::name('cert_order')->where('id', $id)->delete();
             Db::name('cert_domain')->where('oid', $id)->delete();
@@ -425,28 +432,28 @@ class Cert extends BaseController
             return json(['code' => 0]);
         } elseif ($action == 'reset') {
             $id = input('post.id/d');
-            try{
+            try {
                 $service = new CertOrderService($id);
                 $service->cancel();
                 $service->reset();
                 return json(['code' => 0]);
-            }catch(Exception $e){
+            } catch (Exception $e) {
                 return json(['code' => -1, 'msg' => $e->getMessage()]);
             }
         } elseif ($action == 'revoke') {
             $id = input('post.id/d');
-            try{
+            try {
                 $service = new CertOrderService($id);
                 $service->revoke();
                 return json(['code' => 0]);
-            }catch(Exception $e){
+            } catch (Exception $e) {
                 return json(['code' => -1, 'msg' => $e->getMessage()]);
             }
         } elseif ($action == 'show_log') {
             $processid = input('post.processid');
-            $file = app()->getRuntimePath().'log/'.$processid.'.log';
-            if(!file_exists($file)) return json(['code' => -1, 'msg' => '日志文件不存在']);
-            return json(['code' => 0, 'data' => file_get_contents($file), 'time'=>filemtime($file)]);
+            $file = app()->getRuntimePath() . 'log/' . $processid . '.log';
+            if (!file_exists($file)) return json(['code' => -1, 'msg' => '日志文件不存在']);
+            return json(['code' => 0, 'data' => file_get_contents($file), 'time' => filemtime($file)]);
         } elseif ($action == 'operation') {
             $ids = input('post.ids');
             $success = 0;
@@ -489,22 +496,77 @@ class Cert extends BaseController
         $cname = CertHelper::$cert_config[$account['type']]['cname'];
         if (count($domains) > $max_domains) {
             if (!(count($domains) == 2 && $max_domains == 1 && ltrim($domains[0], 'www.') == ltrim($domains[1], 'www.'))) {
-                return ['code' => -1, 'msg' => '域名数量不能超过'.$max_domains.'个'];
+                return ['code' => -1, 'msg' => '域名数量不能超过' . $max_domains . '个'];
             }
         }
 
-        foreach($domains as $domain){
+        foreach ($domains as $domain) {
             if (!$wildcard && strpos($domain, '*') !== false) return ['code' => -1, 'msg' => '该证书账户类型不支持泛域名'];
             $mainDomain = getMainDomain($domain);
             $drow = Db::name('domain')->where('name', $mainDomain)->find();
             if (!$drow) {
                 if (substr($domain, 0, 2) == '*.') $domain = substr($domain, 2);
                 if (!$cname || !Db::name('cert_cname')->where('domain', $domain)->where('status', 1)->find()) {
-                    return ['code' => -1, 'msg' => '域名'.$domain.'未在本系统添加'];
+                    return ['code' => -1, 'msg' => '域名' . $domain . '未在本系统添加'];
                 }
             }
         }
         return true;
+    }
+
+    private function parse_cert_key($fullchain, $privatekey)
+    {
+        if (!openssl_x509_read($fullchain)) return ['code' => -1, 'msg' => '证书内容填写错误'];
+        if (!openssl_get_privatekey($privatekey)) return ['code' => -1, 'msg' => '私钥内容填写错误'];
+        if (!openssl_x509_check_private_key($fullchain, $privatekey)) return ['code' => -1, 'msg' => 'SSL证书与私钥不匹配'];
+        $certInfo = openssl_x509_parse($fullchain, true);
+        if (!$certInfo || !isset($certInfo['extensions']['subjectAltName'])) return ['code' => -1, 'msg' => '证书内容解析失败'];
+
+        $pubKey = openssl_pkey_get_public($fullchain);
+        if (!$pubKey) return ['code' => -1, 'msg' => '证书公钥解析失败'];
+        $keyDetails = openssl_pkey_get_details($pubKey);
+        $keytype = null;
+        $keysize = 0;
+        switch ($keyDetails['type']) {
+            case OPENSSL_KEYTYPE_RSA:
+                $keytype = 'RSA';
+                $keysize = $keyDetails['bits'];
+                break;
+            case OPENSSL_KEYTYPE_EC:
+                $keytype = 'ECC';
+                $keysize = $keyDetails['bits'];
+                break;
+            case OPENSSL_KEYTYPE_DSA:
+                $keytype = 'DSA';
+                $keysize = $keyDetails['bits'];
+                break;
+            default:
+                $keytype = 'Unknown';
+        }
+
+        $domains = [];
+        $subjectAltName = explode(',', $certInfo['extensions']['subjectAltName']);
+        foreach ($subjectAltName as $domain) {
+            $domain = trim($domain);
+            if (strpos($domain, 'DNS:') === 0) $domain = substr($domain, 4);
+            if (!empty($domain)) {
+                $domains[] = $domain;
+            }
+        }
+        $domains = array_unique($domains);
+        if (empty($domains)) return ['code' => -1, 'msg' => '证书绑定域名不能为空'];
+        $issuetime = date('Y-m-d H:i:s', $certInfo['validFrom_time_t']);
+        $expiretime = date('Y-m-d H:i:s', $certInfo['validTo_time_t']);
+        $issuer = $certInfo['issuer']['CN'];
+        return [
+            'code' => 0,
+            'keytype' => $keytype,
+            'keysize' => $keysize,
+            'issuetime' => $issuetime,
+            'expiretime' => $expiretime,
+            'issuer' => $issuer,
+            'domains' => $domains,
+        ];
     }
 
     public function order_process()
@@ -518,18 +580,18 @@ class Cert extends BaseController
         }
         $id = input('post.id/d');
         $reset = input('post.reset/d', 0);
-        try{
+        try {
             $service = new CertOrderService($id);
-            if($reset == 1){
+            if ($reset == 1) {
                 $service->reset();
             }
             $retcode = $service->process(true);
-            if($retcode == 3){
+            if ($retcode == 3) {
                 return json(['code' => 0, 'msg' => '证书已签发成功！']);
-            }elseif($retcode == 1){
+            } elseif ($retcode == 1) {
                 return json(['code' => 0, 'msg' => '添加DNS记录成功！请等待DNS生效后点击验证']);
             }
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return json(['code' => -1, 'msg' => $e->getMessage(), 'trace' => $e->getTrace()]);
         }
     }
@@ -542,14 +604,16 @@ class Cert extends BaseController
         $order = null;
         if ($action == 'edit') {
             $id = input('get.id/d');
-            $order = Db::name('cert_order')->where('id', $id)->fieldRaw('id,aid,keytype,keysize,status')->find();
+            $order = Db::name('cert_order')->where('id', $id)->fieldRaw('id,aid,keytype,keysize,status,fullchain,privatekey')->find();
             if (empty($order)) return $this->alert('error', '证书订单不存在');
-            $order['domains'] = Db::name('cert_domain')->where('oid', $order['id'])->order('sort','ASC')->column('domain');
+            $order['domains'] = Db::name('cert_domain')->where('oid', $order['id'])->order('sort', 'ASC')->column('domain');
+            if ($order['aid'] == 0) $order['aid'] = -1;
         }
 
         $accounts = [];
         foreach (Db::name('cert_account')->where('deploy', 0)->select() as $row) {
-            $accounts[$row['id']] = ['name'=>$row['id'].'_'.CertHelper::$cert_config[$row['type']]['name'], 'type'=>$row['type']];
+            if (empty($row['type']) || !isset(CertHelper::$cert_config[$row['type']])) continue;
+            $accounts[$row['id']] = ['name' => $row['id'] . '_' . CertHelper::$cert_config[$row['type']]['name'], 'type' => $row['type']];
             if (!empty($row['remark'])) {
                 $accounts[$row['id']]['name'] .= '（' . $row['remark'] . '）';
             }
@@ -561,26 +625,11 @@ class Cert extends BaseController
         return View::fetch();
     }
 
-    public function order_import()
-    {
-        if (!checkPermission(2)) return $this->alert('error', '无权限');
-        $accounts = [];
-        foreach (Db::name('cert_account')->where('deploy', 0)->select() as $row) {
-            $accounts[$row['id']] = ['name'=>$row['id'].'_'.CertHelper::$cert_config[$row['type']]['name'], 'type'=>$row['type']];
-            if (!empty($row['remark'])) {
-                $accounts[$row['id']]['name'] .= '（' . $row['remark'] . '）';
-            }
-        }
-        View::assign('accounts', $accounts);
-        return View::fetch();
-    }
-
-
     public function deploytask()
     {
         if (!checkPermission(2)) return $this->alert('error', '无权限');
         $types = [];
-        foreach(DeployHelper::$deploy_config as $key=>$value){
+        foreach (DeployHelper::$deploy_config as $key => $value) {
             $types[$key] = $value['name'];
         }
         View::assign('types', $types);
@@ -592,18 +641,22 @@ class Cert extends BaseController
         if (!checkPermission(2)) return $this->alert('error', '无权限');
         $domain = $this->request->post('domain', null, 'trim');
         $oid = input('post.oid');
+        $aid = input('post.aid', null, 'trim');
         $type = input('post.type', null, 'trim');
         $status = input('post.status', null, 'trim');
         $remark = input('post.remark', null, 'trim');
         $offset = input('post.offset/d');
         $limit = input('post.limit/d');
 
-        $select = Db::name('cert_deploy')->alias('A')->join('cert_account B', 'A.aid = B.id')->join('cert_order C', 'A.oid = C.id')->join('cert_account D', 'C.aid = D.id');
+        $select = Db::name('cert_deploy')->alias('A')->leftJoin('cert_account B', 'A.aid = B.id')->leftJoin('cert_order C', 'A.oid = C.id')->leftJoin('cert_account D', 'C.aid = D.id');
         if (!empty($oid)) {
             $select->where('A.oid', $oid);
         } elseif (!empty($domain)) {
             $oids = Db::name('cert_domain')->where('domain', 'like', '%' . $domain . '%')->column('oid');
             $select->whereIn('oid', $oids);
+        }
+        if (!empty($aid)) {
+            $select->where('A.aid', $aid);
         }
         if (!empty($type)) {
             $select->where('B.type', $type);
@@ -619,11 +672,17 @@ class Cert extends BaseController
 
         $list = [];
         foreach ($rows as $row) {
-            $row['typename'] = DeployHelper::$deploy_config[$row['type']]['name'];
-            $row['icon'] = DeployHelper::$deploy_config[$row['type']]['icon'];
-            $row['certtypename'] = CertHelper::$cert_config[$row['certtype']]['name'];
-            $row['domains'] = Db::name('cert_domain')->where('oid', $row['oid'])->order('sort','ASC')->column('domain');
-            if($row['error']) $row['error'] = htmlspecialchars(str_replace("'", "\\'", $row['error']));
+            if (!empty($row['type']) && isset(DeployHelper::$deploy_config[$row['type']])) {
+                $row['typename'] = DeployHelper::$deploy_config[$row['type']]['name'];
+                $row['icon'] = DeployHelper::$deploy_config[$row['type']]['icon'];
+            }
+            if (!empty($row['certtype']) && isset(CertHelper::$cert_config[$row['certtype']])) {
+                $row['certtypename'] = CertHelper::$cert_config[$row['certtype']]['name'];
+            } else {
+                $row['certtypename'] = '手动续期';
+            }
+            $row['domains'] = Db::name('cert_domain')->where('oid', $row['oid'])->order('sort', 'ASC')->column('domain');
+            if ($row['error']) $row['error'] = htmlspecialchars(str_replace("'", "\\'", $row['error']));
             $list[] = $row;
         }
 
@@ -652,7 +711,7 @@ class Cert extends BaseController
             $id = input('post.id/d');
             $row = Db::name('cert_deploy')->where('id', $id)->find();
             if (!$row) return json(['code' => -1, 'msg' => '自动部署任务不存在']);
-            
+
             $task = [
                 'aid' => input('post.aid/d'),
                 'oid' => input('post.oid/d'),
@@ -673,21 +732,27 @@ class Cert extends BaseController
             return json(['code' => 0]);
         } elseif ($action == 'reset') {
             $id = input('post.id/d');
-            try{
+            try {
                 $service = new CertDeployService($id);
                 $service->reset();
                 return json(['code' => 0]);
-            }catch(Exception $e){
+            } catch (Exception $e) {
                 return json(['code' => -1, 'msg' => $e->getMessage()]);
             }
         } elseif ($action == 'show_log') {
             $processid = input('post.processid');
-            $file = app()->getRuntimePath().'log/'.$processid.'.log';
-            if(!file_exists($file)) return json(['code' => -1, 'msg' => '日志文件不存在']);
-            return json(['code' => 0, 'data' => file_get_contents($file), 'time'=>filemtime($file)]);
+            $file = app()->getRuntimePath() . 'log/' . $processid . '.log';
+            if (!file_exists($file)) return json(['code' => -1, 'msg' => '日志文件不存在']);
+            return json(['code' => 0, 'data' => file_get_contents($file), 'time' => filemtime($file)]);
         } elseif ($action == 'operation') {
             $ids = input('post.ids');
             $success = 0;
+            $certid = 0;
+            if (input('post.action') == 'cert') {
+                $certid = input('post.certid/d');
+                $cert = Db::name('cert_order')->where('id', $certid)->find();
+                if (!$cert) return json(['code' => -1, 'msg' => '证书订单不存在']);
+            }
             foreach ($ids as $id) {
                 if (input('post.action') == 'delete') {
                     Db::name('cert_deploy')->where('id', $id)->delete();
@@ -702,6 +767,9 @@ class Cert extends BaseController
                 } elseif (input('post.action') == 'open' || input('post.action') == 'close') {
                     $active = input('post.action') == 'open' ? 1 : 0;
                     Db::name('cert_deploy')->where('id', $id)->update(['active' => $active]);
+                    $success++;
+                } elseif (input('post.action') == 'cert') {
+                    Db::name('cert_deploy')->where('id', $id)->update(['oid' => $certid]);
                     $success++;
                 }
             }
@@ -721,14 +789,14 @@ class Cert extends BaseController
         }
         $id = input('post.id/d');
         $reset = input('post.reset/d', 0);
-        try{
+        try {
             $service = new CertDeployService($id);
-            if($reset == 1){
+            if ($reset == 1) {
                 $service->reset();
             }
             $service->process(true);
             return json(['code' => 0, 'msg' => 'SSL证书部署任务执行成功！']);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return json(['code' => -1, 'msg' => $e->getMessage(), 'trace' => $e->getTrace()]);
         }
     }
@@ -747,7 +815,8 @@ class Cert extends BaseController
 
         $accounts = [];
         foreach (Db::name('cert_account')->where('deploy', 1)->select() as $row) {
-            $accounts[$row['id']] = ['name'=>$row['id'].'_'.DeployHelper::$deploy_config[$row['type']]['name'], 'type'=>$row['type']];
+            if (empty($row['type']) || !isset(DeployHelper::$deploy_config[$row['type']])) continue;
+            $accounts[$row['id']] = ['name' => $row['id'] . '_' . DeployHelper::$deploy_config[$row['type']]['name'], 'type' => $row['type']];
             if (!empty($row['remark'])) {
                 $accounts[$row['id']]['name'] .= '（' . $row['remark'] . '）';
             }
@@ -755,10 +824,15 @@ class Cert extends BaseController
         View::assign('accounts', $accounts);
 
         $orders = [];
-        foreach (Db::name('cert_order')->alias('A')->join('cert_account B', 'A.aid = B.id')->where('status', '<>', 4)->fieldRaw('A.id,A.aid,B.type,B.remark aremark')->order('id', 'desc')->select() as $row) {
-            $domains = Db::name('cert_domain')->where('oid', $row['id'])->order('sort','ASC')->column('domain');
-            $domainstr = count($domains) > 2 ? implode('、',array_slice($domains, 0, 2)).'等'.count($domains).'个域名' : implode('、',$domains);
-            $orders[$row['id']] = ['name'=>$row['id'].'_'.$domainstr.'（'.CertHelper::$cert_config[$row['type']]['name'].'）'];
+        foreach (Db::name('cert_order')->alias('A')->leftJoin('cert_account B', 'A.aid = B.id')->where('status', '<>', 4)->fieldRaw('A.id,A.aid,B.type,B.remark aremark')->order('id', 'desc')->select() as $row) {
+            $domains = Db::name('cert_domain')->where('oid', $row['id'])->order('sort', 'ASC')->column('domain');
+            $domainstr = count($domains) > 2 ? implode('、', array_slice($domains, 0, 2)) . '等' . count($domains) . '个域名' : implode('、', $domains);
+            if ($row['aid'] == 0) {
+                $name = $row['id'] . '_' . $domainstr . '（手动续期）';
+            } else {
+                $name = $row['id'] . '_' . $domainstr . '（' . CertHelper::$cert_config[$row['type']]['name'] . '）';
+            }
+            $orders[$row['id']] = ['name' => $name];
         }
         View::assign('orders', $orders);
 
@@ -786,7 +860,7 @@ class Cert extends BaseController
         $offset = input('post.offset/d');
         $limit = input('post.limit/d');
 
-        $select = Db::name('cert_cname')->alias('A')->join('domain B', 'A.did = B.id');
+        $select = Db::name('cert_cname')->alias('A')->leftJoin('domain B', 'A.did = B.id');
         if (!empty($kw)) {
             $select->whereLike('A.domain', '%' . $kw . '%');
         }
@@ -829,7 +903,7 @@ class Cert extends BaseController
             if (empty($data['domain']) || empty($data['rr']) || empty($data['did'])) return json(['code' => -1, 'msg' => '必填参数不能为空']);
             if (!checkDomain($data['domain'])) return json(['code' => -1, 'msg' => '域名格式不正确']);
             if (Db::name('cert_cname')->where('domain', $data['domain'])->find()) {
-                return json(['code' => -1, 'msg' => '域名'.$data['domain'].'已存在']);
+                return json(['code' => -1, 'msg' => '域名' . $data['domain'] . '已存在']);
             }
             if (Db::name('cert_cname')->where('rr', $data['rr'])->where('did', $data['did'])->find()) {
                 return json(['code' => -1, 'msg' => '已存在相同CNAME记录值']);
@@ -840,7 +914,7 @@ class Cert extends BaseController
             $id = input('post.id/d');
             $row = Db::name('cert_cname')->where('id', $id)->find();
             if (!$row) return json(['code' => -1, 'msg' => 'CMAME代理不存在']);
-            
+
             $data = [
                 'rr' => input('post.rr', null, 'trim'),
                 'did' => input('post.did/d'),
@@ -867,13 +941,13 @@ class Cert extends BaseController
             $domain = '_acme-challenge.' . $row['domain'];
             $record = $row['rr'] . '.' . $row['cnamedomain'];
             $result = \app\utils\DnsQueryUtils::get_dns_records($domain, 'CNAME');
-            if(!$result || !in_array($record, $result)){
+            if (!$result || !in_array($record, $result)) {
                 $result = \app\utils\DnsQueryUtils::query_dns_doh($domain, 'CNAME');
-                if(!$result || !in_array($record, $result)){
+                if (!$result || !in_array($record, $result)) {
                     $status = 0;
                 }
             }
-            if($status != $row['status']){
+            if ($status != $row['status']) {
                 Db::name('cert_cname')->where('id', $id)->update(['status' => $status]);
             }
             return json(['code' => 0, 'status' => $status]);
@@ -883,17 +957,6 @@ class Cert extends BaseController
     public function certset()
     {
         if (!checkPermission(2)) return $this->alert('error', '无权限');
-        if ($this->request->isPost()) {
-            $params = input('post.');
-            foreach ($params as $key => $value) {
-                if (empty($key)) {
-                    continue;
-                }
-                config_set($key, $value);
-                Cache::delete('configs');
-            }
-            return json(['code' => 0, 'msg' => 'succ']);
-        }
         return View::fetch();
     }
 }
