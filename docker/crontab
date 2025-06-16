@@ -1,0 +1,2 @@
+*/15 * * * * cd /app/www && /usr/bin/php82 think opiptask
+*/1 * * * * cd /app/www && /usr/bin/php82 think certtask

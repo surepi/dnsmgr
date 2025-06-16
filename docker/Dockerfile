@@ -59,8 +59,8 @@ RUN composer install -d /usr/src/www --no-dev --ignore-platform-req=ext-ssh2 --i
 RUN adduser -D -s /sbin/nologin -g www www && chown -R www.www /usr/src/www /var/lib/nginx /var/log/nginx
 
 # crontab
-RUN echo "*/15 * * * * cd /app/www && /usr/bin/php82 think opiptask" | crontab -u www -
-RUN echo "*/1 * * * * cd /app/www && /usr/bin/php82 think certtask" | crontab -u www -
+COPY crontab /tmp/crontab
+RUN crontab -u www /tmp/crontab
 
 # copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh
