@@ -153,7 +153,7 @@
               <li class="{:checkIfActive('certset')}"><a href="/cert/certset"><i class="fa fa-circle-o"></i> 计划任务设置</a></li>
             </ul>
           </li>
-          <li class="treeview {:checkIfActive('noticeset,proxyset')}">
+          <li class="treeview {:checkIfActive('loginset,noticeset,proxyset')}">
             <a href="javascript:;">
               <i class="fa fa-cogs fa-fw"></i>
               <span>系统设置</span>
@@ -162,6 +162,7 @@
               </span>
             </a>
             <ul class="treeview-menu">
+              <li class="{:checkIfActive('loginset')}"><a href="/system/loginset"><i class="fa fa-circle-o"></i> 登录设置</a></li>
               <li class="{:checkIfActive('noticeset')}"><a href="/system/noticeset"><i class="fa fa-circle-o"></i> 通知设置</a></li>
               <li class="{:checkIfActive('proxyset')}"><a href="/system/proxyset"><i class="fa fa-circle-o"></i> 代理设置</a></li>
               <li><a href="https://www.showdoc.com.cn/dnsmgr/11058996709621562" target="_blank" rel="noreferrer"><i class="fa fa-circle-o"></i> <span>接口文档</span></a></li>

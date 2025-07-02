@@ -641,6 +641,44 @@ class DeployHelper
                 ],
             ],
         ],
+        'lucky' => [
+            'name' => 'Lucky',
+            'class' => 1,
+            'icon' => 'lucky.png',
+            'desc' => '更新Lucky证书',
+            'note' => '在“设置->开发者设置”打开OpenToken开关',
+            'tasknote' => '系统会根据关联SSL证书的域名，自动更新对应证书',
+            'inputs' => [
+                'url' => [
+                    'name' => '面板地址',
+                    'type' => 'input',
+                    'placeholder' => 'Lucky 面板地址',
+                    'note' => '填写规则如：https://192.168.1.100:16601 ，不要带其他后缀',
+                    'required' => true,
+                ],
+                'path' => [
+                    'name' => '安全入口',
+                    'type' => 'input',
+                    'note' => '未设置请留空，参考Lucky设置中的安全入口设置'
+                ],
+                'opentoken' => [
+                    'name' => 'OpenToken',
+                    'type' => 'input',
+                    'placeholder' => '',
+                    'required' => true,
+                ],
+                'proxy' => [
+                    'name' => '使用代理服务器',
+                    'type' => 'radio',
+                    'options' => [
+                        '0' => '否',
+                        '1' => '是',
+                    ],
+                    'value' => '0'
+                ],
+            ],
+            'taskinputs' => [],
+        ],
         'proxmox' => [
             'name' => 'Proxmox VE',
             'class' => 1,
@@ -770,7 +808,7 @@ class DeployHelper
                         ['value'=>'ap-southeast-1', 'label'=>'非中国内地'],
                     ],
                     'value' => 'cn-hangzhou',
-                    'show' => 'product==\'waf\'||product==\'waf2\'||product==\'ddoscoo\'',
+                    'show' => 'product==\'waf\'||product==\'waf2\'||product==\'ddoscoo\'||product==\'esa\'',
                     'required' => true,
                 ],
                 'regionid' => [
@@ -1132,7 +1170,7 @@ class DeployHelper
         'doge' => [
             'name' => '多吉云',
             'class' => 2,
-            'icon' => 'cloud.png',
+            'icon' => 'doge.png',
             'desc' => '支持部署到多吉云融合CDN',
             'note' => '支持部署到多吉云融合CDN',
             'inputs' => [
@@ -1536,6 +1574,46 @@ class DeployHelper
                     'type' => 'input',
                     'placeholder' => '',
                     'note' => '在控制台->我的域名->配置复制浏览器地址栏显示的域名ID（19位数字），注意域名是否与证书匹配',
+                    'required' => true,
+                ],
+            ],
+        ],
+        'rainyun' => [
+            'name' => '雨云',
+            'class' => 2,
+            'icon' => 'waf.png',
+            'desc' => '替换雨云证书管理内的证书',
+            'note' => null,
+            'inputs' => [
+                'account' => [
+                    'name' => '账号',
+                    'type' => 'input',
+                    'placeholder' => '仅用作标记',
+                    'required' => true,
+                ],
+                'apikey' => [
+                    'name' => 'ApiKey',
+                    'type' => 'input',
+                    'placeholder' => '',
+                    'note' => '在 账户设置->API密钥 页面查看',
+                    'required' => true,
+                ],
+                'proxy' => [
+                    'name' => '使用代理服务器',
+                    'type' => 'radio',
+                    'options' => [
+                        '0' => '否',
+                        '1' => '是',
+                    ],
+                    'value' => '0'
+                ],
+            ],
+            'taskinputs' => [
+                'id' => [
+                    'name' => '证书ID',
+                    'type' => 'input',
+                    'placeholder' => '',
+                    'note' => '在SSL证书->我的证书页面查看，注意域名是否与证书匹配',
                     'required' => true,
                 ],
             ],

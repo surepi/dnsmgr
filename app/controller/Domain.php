@@ -142,13 +142,14 @@ class Domain extends BaseController
         $accounts = [];
         $types = [];
         foreach ($list as $row) {
-            $accounts[$row['id']] = $row['id'] . '_' . DnsHelper::$dns_config[$row['type']]['name'];
+            $name = $row['id'] . '_' . DnsHelper::$dns_config[$row['type']]['name'];
             if (!array_key_exists($row['type'], $types)) {
                 $types[$row['type']] = DnsHelper::$dns_config[$row['type']]['name'];
             }
             if (!empty($row['remark'])) {
-                $accounts[$row['id']] .= '（' . $row['remark'] . '）';
+                $name .= '（' . $row['remark'] . '）';
             }
+            $accounts[] = ['id' => $row['id'], 'name' => $name, 'type' => DnsHelper::$dns_config[$row['type']]['name'], 'add' => DnsHelper::$dns_config[$row['type']]['add']];
         }
         View::assign('accounts', $accounts);
         View::assign('types', $types);
@@ -225,12 +226,20 @@ class Domain extends BaseController
         } elseif ($act == 'add') {
             if (!checkPermission(2)) return $this->alert('error', '无权限');
             $aid = input('post.aid/d');
+            $method = input('post.method/d', 0);
             $name = input('post.name', null, 'trim');
             $thirdid = input('post.thirdid', null, 'trim');
             $recordcount = input('post.recordcount/d', 0);
-            if (empty($name) || empty($thirdid)) return json(['code' => -1, 'msg' => '参数不能为空']);
+            if ($method == 1 && empty($name) || $method == 0 && (empty($name) || empty($thirdid))) return json(['code' => -1, 'msg' => '参数不能为空']);
             if (Db::name('domain')->where('aid', $aid)->where('name', $name)->find()) {
                 return json(['code' => -1, 'msg' => '域名已存在']);
+            }
+            if ($method == 1) {
+                $dns = DnsHelper::getModel($aid);
+                $result = $dns->addDomain($name);
+                if (!$result) return json(['code' => -1, 'msg' => '添加域名失败，' . $dns->getError()]);
+                $name = $result['name'];
+                $thirdid = $result['id'];
             }
             Db::name('domain')->insert([
                 'aid' => $aid,
@@ -536,7 +545,6 @@ class Domain extends BaseController
         $remark = input('post.remark', null, 'trim');
 
         $recordinfo = input('post.recordinfo', null, 'trim');
-        $recordinfo = json_decode($recordinfo, true);
 
         if (empty($recordid) || empty($name) || empty($type) || empty($value)) {
             return json(['code' => -1, 'msg' => '参数不能为空']);
@@ -546,6 +554,7 @@ class Domain extends BaseController
         $recordid = $dns->updateDomainRecord($recordid, $name, $type, $value, $line, $ttl, $mx, $weight, $remark);
         if ($recordid) {
             if ($recordinfo) {
+                $recordinfo = json_decode($recordinfo, true);
                 if (is_array($recordinfo['Value'])) $recordinfo['Value'] = implode(',', $recordinfo['Value']);
                 if ($recordinfo['Name'] != $name || $recordinfo['Type'] != $type || $recordinfo['Value'] != $value) {
                     $this->add_log($drow['name'], '修改解析', $recordinfo['Name'].' ['.$recordinfo['Type'].'] '.$recordinfo['Value'].' → '.$name.' ['.$type.'] '.$value.' (线路:'.$line.' TTL:'.$ttl.')');
@@ -572,7 +581,6 @@ class Domain extends BaseController
 
         $recordid = input('post.recordid', null, 'trim');
         $recordinfo = input('post.recordinfo', null, 'trim');
-        $recordinfo = json_decode($recordinfo, true);
 
         if (empty($recordid)) {
             return json(['code' => -1, 'msg' => '参数不能为空']);
@@ -581,6 +589,7 @@ class Domain extends BaseController
         $dns = DnsHelper::getModel($drow['aid'], $drow['name'], $drow['thirdid']);
         if ($dns->deleteDomainRecord($recordid)) {
             if ($recordinfo) {
+                $recordinfo = json_decode($recordinfo, true);
                 if (is_array($recordinfo['Value'])) $recordinfo['Value'] = implode(',', $recordinfo['Value']);
                 $this->add_log($drow['name'], '删除解析', $recordinfo['Name'].' ['.$recordinfo['Type'].'] '.$recordinfo['Value'].' (线路:'.$recordinfo['Line'].' TTL:'.$recordinfo['TTL'].')');
             } else {
@@ -604,7 +613,6 @@ class Domain extends BaseController
         $recordid = input('post.recordid', null, 'trim');
         $status = input('post.status', null, 'trim');
         $recordinfo = input('post.recordinfo', null, 'trim');
-        $recordinfo = json_decode($recordinfo, true);
 
         if (empty($recordid)) {
             return json(['code' => -1, 'msg' => '参数不能为空']);
@@ -614,6 +622,7 @@ class Domain extends BaseController
         if ($dns->setDomainRecordStatus($recordid, $status)) {
             $action = $status == '1' ? '启用解析' : '暂停解析';
             if ($recordinfo) {
+                $recordinfo = json_decode($recordinfo, true);
                 if (is_array($recordinfo['Value'])) $recordinfo['Value'] = implode(',', $recordinfo['Value']);
                 $this->add_log($drow['name'], $action, $recordinfo['Name'].' ['.$recordinfo['Type'].'] '.$recordinfo['Value'].' (线路:'.$recordinfo['Line'].' TTL:'.$recordinfo['TTL'].')');
             } else {
