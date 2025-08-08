@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "39f34360e80abbce3e603a056ae6211a",
+    "content-hash": "876ad9987c672e0fa8d90dbe55321dc7",
     "packages": [
         {
             "name": "cccyun/php-whois",
@@ -1348,16 +1348,16 @@
         },
         {
             "name": "topthink/framework",
-            "version": "v8.1.2",
+            "version": "v8.1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/top-think/framework.git",
-                "reference": "8faec5c9b7a7f2a66ca3140a57e81bd6cd37567c"
+                "reference": "e4207e98b66f92d26097ed6efd535930cba90e8f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/top-think/framework/zipball/8faec5c9b7a7f2a66ca3140a57e81bd6cd37567c",
-                "reference": "8faec5c9b7a7f2a66ca3140a57e81bd6cd37567c",
+                "url": "https://api.github.com/repos/top-think/framework/zipball/e4207e98b66f92d26097ed6efd535930cba90e8f",
+                "reference": "e4207e98b66f92d26097ed6efd535930cba90e8f",
                 "shasum": ""
             },
             "require": {
@@ -1409,9 +1409,9 @@
             ],
             "support": {
                 "issues": "https://github.com/top-think/framework/issues",
-                "source": "https://github.com/top-think/framework/tree/v8.1.2"
+                "source": "https://github.com/top-think/framework/tree/v8.1.3"
             },
-            "time": "2025-01-14T08:04:03+00:00"
+            "time": "2025-07-14T03:48:44+00:00"
         },
         {
             "name": "topthink/think-container",
@@ -1507,16 +1507,16 @@
         },
         {
             "name": "topthink/think-orm",
-            "version": "v4.0.46",
+            "version": "v4.0.48",
             "source": {
                 "type": "git",
                 "url": "https://github.com/top-think/think-orm.git",
-                "reference": "4bb0a5679a97db8de1c0eb02bbbe179cb3afd901"
+                "reference": "94d34d6804a5abe847bef2d065c8e127a72f1883"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/top-think/think-orm/zipball/4bb0a5679a97db8de1c0eb02bbbe179cb3afd901",
-                "reference": "4bb0a5679a97db8de1c0eb02bbbe179cb3afd901",
+                "url": "https://api.github.com/repos/top-think/think-orm/zipball/94d34d6804a5abe847bef2d065c8e127a72f1883",
+                "reference": "94d34d6804a5abe847bef2d065c8e127a72f1883",
                 "shasum": ""
             },
             "require": {
@@ -1524,7 +1524,7 @@
                 "ext-pdo": "*",
                 "php": ">=8.0.0",
                 "psr/log": ">=1.0",
-                "psr/simple-cache": ">=1.0",
+                "psr/simple-cache": "^3.0",
                 "topthink/think-helper": "^3.1",
                 "topthink/think-validate": "^3.0"
             },
@@ -1561,9 +1561,9 @@
             ],
             "support": {
                 "issues": "https://github.com/top-think/think-orm/issues",
-                "source": "https://github.com/top-think/think-orm/tree/v4.0.46"
+                "source": "https://github.com/top-think/think-orm/tree/v4.0.48"
             },
-            "time": "2025-06-26T06:05:35+00:00"
+            "time": "2025-07-31T06:12:16+00:00"
         },
         {
             "name": "topthink/think-template",
@@ -1727,16 +1727,16 @@
         },
         {
             "name": "symfony/var-dumper",
-            "version": "v7.3.1",
+            "version": "v7.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "6e209fbe5f5a7b6043baba46fe5735a4b85d0d42"
+                "reference": "53205bea27450dc5c65377518b3275e126d45e75"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/6e209fbe5f5a7b6043baba46fe5735a4b85d0d42",
-                "reference": "6e209fbe5f5a7b6043baba46fe5735a4b85d0d42",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/53205bea27450dc5c65377518b3275e126d45e75",
+                "reference": "53205bea27450dc5c65377518b3275e126d45e75",
                 "shasum": ""
             },
             "require": {
@@ -1748,7 +1748,6 @@
                 "symfony/console": "<6.4"
             },
             "require-dev": {
-                "ext-iconv": "*",
                 "symfony/console": "^6.4|^7.0",
                 "symfony/http-kernel": "^6.4|^7.0",
                 "symfony/process": "^6.4|^7.0",
@@ -1791,7 +1790,7 @@
                 "dump"
             ],
             "support": {
-                "source": "https://github.com/symfony/var-dumper/tree/v7.3.1"
+                "source": "https://github.com/symfony/var-dumper/tree/v7.3.2"
             },
             "funding": [
                 {
@@ -1803,29 +1802,33 @@
                     "type": "github"
                 },
                 {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
                     "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-06-27T19:55:54+00:00"
+            "time": "2025-07-29T20:02:46+00:00"
         },
         {
             "name": "topthink/think-trace",
-            "version": "v1.6",
+            "version": "v2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/top-think/think-trace.git",
-                "reference": "136cd5d97e8bdb780e4b5c1637c588ed7ca3e142"
+                "reference": "4ba6da2945b37931d61900a6e55dc02b05e5a63f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/top-think/think-trace/zipball/136cd5d97e8bdb780e4b5c1637c588ed7ca3e142",
-                "reference": "136cd5d97e8bdb780e4b5c1637c588ed7ca3e142",
+                "url": "https://api.github.com/repos/top-think/think-trace/zipball/4ba6da2945b37931d61900a6e55dc02b05e5a63f",
+                "reference": "4ba6da2945b37931d61900a6e55dc02b05e5a63f",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.1.0",
-                "topthink/framework": "^6.0|^8.0"
+                "php": ">=8.0",
+                "topthink/framework": "^8.1"
             },
             "type": "library",
             "extra": {
@@ -1856,14 +1859,14 @@
             "description": "thinkphp debug trace",
             "support": {
                 "issues": "https://github.com/top-think/think-trace/issues",
-                "source": "https://github.com/top-think/think-trace/tree/v1.6"
+                "source": "https://github.com/top-think/think-trace/tree/v2.0"
             },
-            "time": "2023-02-07T08:36:32+00:00"
+            "time": "2025-06-12T09:18:19+00:00"
         }
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -1877,6 +1880,6 @@
         "ext-sockets": "*",
         "ext-ssh2": "*"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }
