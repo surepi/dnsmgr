@@ -193,3 +193,12 @@ Route::group('api', function () {
 Route::miss(function() {
     return response('404 Not Found')->code(404);
 });
+use think\facade\Route;
+
+// 系统自动升级相关路由
+Route::group('update', function () {
+    // 检查更新接口: GET /update/check
+    Route::get('check', 'Update/check');
+    // 执行升级接口: POST /update/process
+    Route::post('process', 'Update/process');
+});
