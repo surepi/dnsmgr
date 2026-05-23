@@ -55,13 +55,15 @@ pre.pre-log{height: 330px;overflow-y: auto;width: 100%;background-color: rgba(51
 <script src="/static/js/bootstrap-table-1.21.4.min.js"></script>
 <script src="/static/js/bootstrap-table-page-jump-to-1.21.4.min.js"></script>
 <script src="/static/js/FileSaver-2.0.5.min.js"></script>
-<script src="/static/js/custom.js"></script>
+<script src="/static/js/custom.js?v=1006"></script>
 <script>
 $(document).ready(function(){
 	updateToolbar();
-	const defaultPageSize = 10;
+	const pageSizeKey = 'certorder_pagesize';
 	const pageNumber = typeof window.$_GET['pageNumber'] != 'undefined' ? parseInt(window.$_GET['pageNumber']) : 1;
-	const pageSize = typeof window.$_GET['pageSize'] != 'undefined' ? parseInt(window.$_GET['pageSize']) : defaultPageSize;
+	const pageSize = getStoredPageSize(pageSizeKey, 10);
+	var urlSort = typeof window.$_GET['sortName'] != 'undefined' ? window.$_GET['sortName'] : undefined;
+	var urlOrder = typeof window.$_GET['sortOrder'] != 'undefined' ? window.$_GET['sortOrder'] : undefined;
 
 	$("#listTable").bootstrapTable({
 		url: '/cert/order/data',
@@ -69,6 +71,9 @@ $(document).ready(function(){
 		pageSize: pageSize,
 		classes: 'table table-striped table-hover table-bordered',
 		uniqueId: 'id',
+		sortReset: false,
+		sortName: urlSort,
+		sortOrder: urlOrder,
 		columns: [
 			{
 				field: '',
@@ -76,11 +81,13 @@ $(document).ready(function(){
 			},
 			{
 				field: 'id',
-				title: 'ID'
+				title: 'ID',
+				sortable: true
 			},
 			{
 				field: 'typename',
 				title: '证书账户',
+				sortable: true,
 				formatter: function(value, row, index) {
 					if(value){
 						return '<span title="'+row.aremark+'" data-toggle="tooltip" data-placement="right"><img src="/static/images/'+row.icon+'" class="type-logo">'+value+'('+row.aid+')</span>';
@@ -98,6 +105,7 @@ $(document).ready(function(){
 			{
 				field: 'keytype',
 				title: '证书信息',
+				sortable: true,
 				formatter: function(value, row, index) {
 					return '<span class="text-muted">签名算法:</span>'+row.keytype+'('+row.keysize+')'+(row.issuer?'<br/><span class="text-muted">颁发机构:</span>'+row.issuer:'');
 				}
@@ -105,6 +113,7 @@ $(document).ready(function(){
 			{
 				field: 'isauto',
 				title: '自动续签',
+				sortable: true,
 				formatter: function(value, row, index) {
 					if(value == 1){
 						return '<div class="material-switch"><input id="isauto'+row.id+'" type="checkbox" checked onchange="setAuto('+row.id+',0)"/><label for="isauto'+row.id+'" class="label-primary"></label></div>';
@@ -116,6 +125,7 @@ $(document).ready(function(){
 			{
 				field: 'issuetime',
 				title: '签发时间',
+				sortable: true,
 				formatter: function(value, row, index) {
 					return value ? value.substring(0,10) : '暂未签发';
 				}
@@ -123,6 +133,7 @@ $(document).ready(function(){
 			{
 				field: 'end_day',
 				title: '到期时间',
+				sortable: true,
 				formatter: function(value, row, index) {
 					if(value != null){
 						if(value > 7){
@@ -140,6 +151,7 @@ $(document).ready(function(){
 			{
 				field: 'status',
 				title: '状态',
+				sortable: true,
 				formatter: function(value, row, index) {
 					if(value == 4) {
 						return '<span class="label" style="background-color: #a5a5a5;">已吊销</span>';
@@ -252,7 +264,10 @@ $(document).ready(function(){
 				}
 				$(e.target).children('.dropdown-menu').css({position:'fixed', top:top, left:left});
 			});
-		}
+		},
+		onPageChange: function(number, size){
+			setStoredPageSize(pageSizeKey, size);
+		},
 	})
 })
 function showmsg(msg){

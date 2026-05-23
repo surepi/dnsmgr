@@ -49,12 +49,15 @@ function updateToolbar(){
 function updateQueryStr(obj){
 	var arr = [];
     for (var p in obj){
-		if (obj.hasOwnProperty(p) && typeof obj[p] != 'undefined' && obj[p] != '') {
+		if (obj.hasOwnProperty(p) && typeof obj[p] != 'undefined' && obj[p] != null && obj[p] != '') {
 			arr.push(p + "=" + encodeURIComponent(obj[p]));
 		}
 	}
 	history.replaceState({}, null, '?'+arr.join("&"));
 }
+
+var VALID_PAGE_SIZES = [10, 15, 20, 30, 50, 100, 200, 300, 500];
+var DEFAULT_PAGE_SIZE = 15;
 
 if (typeof $.fn.bootstrapTable !== "undefined") {
     $.fn.bootstrapTable.custom = {
@@ -64,8 +67,8 @@ if (typeof $.fn.bootstrapTable !== "undefined") {
         pagination: true,
         sidePagination: 'server',
         pageNumber: 1,
-        pageSize: 20,
-        pageList: [10, 15, 20, 30, 50, 100],
+        pageSize: 15,
+        pageList: [10, 15, 20, 30, 50, 100, 200, 300, 500],
 		loadingFontSize: '18px',
 		toolbar: '#searchToolbar',
 		showColumns: true,
@@ -98,7 +101,32 @@ if (typeof $.fn.bootstrapTable !== "undefined") {
 		},
 		formatNoMatches: function(){
 			return '没有找到匹配的记录';
-		}
+		},
+		onSort: function(name, order) {
+			var $table = $('#listTable');
+			if (!name) {
+				$table.data('_sortClicks', null);
+				return;
+			}
+			var clicks = $table.data('_sortClicks') || {};
+			if (clicks._last !== name) {
+				clicks = {_last: name};
+				clicks[name] = 1;
+				this.sortOrder = 'desc';
+			} else {
+				clicks[name] = (clicks[name] || 0) + 1;
+				if (clicks[name] === 1) {
+					this.sortOrder = 'desc';
+				} else if (clicks[name] === 2) {
+					this.sortOrder = 'asc';
+				} else {
+					this.sortName = undefined;
+					this.sortOrder = undefined;
+					clicks = {};
+				}
+			}
+			$table.data('_sortClicks', clicks);
+		},
     };
     $.extend($.fn.bootstrapTable.defaults, $.fn.bootstrapTable.custom);
 }
@@ -170,5 +198,28 @@ function delCookie(name)
     var cval=getCookie(name);
     if(cval!=null){
       document.cookie= name + "="+cval+";expires="+exp.toGMTString();
+    }
+}
+
+function getStoredPageSize(key, defaultSize) {
+	defaultSize = defaultSize || DEFAULT_PAGE_SIZE;
+    var urlSize = typeof window.$_GET['pageSize'] != 'undefined' ? parseInt(window.$_GET['pageSize']) : null;
+    if (urlSize && VALID_PAGE_SIZES.indexOf(urlSize) !== -1) {
+        return urlSize;
+    }
+    var stored = localStorage.getItem(key);
+    if (stored) {
+        var storedSize = parseInt(stored);
+        if (VALID_PAGE_SIZES.indexOf(storedSize) !== -1) {
+            return storedSize;
+        }
+    }
+    return defaultSize;
+}
+
+function setStoredPageSize(key, size) {
+    var intSize = parseInt(size);
+    if (VALID_PAGE_SIZES.indexOf(intSize) !== -1) {
+        localStorage.setItem(key, intSize);
     }
 }
